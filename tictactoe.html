@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe</title>
+    <title>Tic Tac Toe Multiplayer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -137,6 +137,39 @@
         .theme-toggle svg {
             width: 24px;
             height: 24px;
+        }
+
+        .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            background: var(--cell-bg);
+            border-radius: 16px;
+            border: 1px solid var(--cell-border);
+        }
+
+        .player-badge {
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .player-badge.x {
+            background: var(--accent-x);
+            color: white;
+        }
+
+        .player-badge.o {
+            background: var(--accent-o);
+            color: white;
+        }
+
+        .player-badge.spectator {
+            background: var(--cell-border);
+            color: var(--text-secondary);
         }
 
         .status {
@@ -284,6 +317,12 @@
             transform: translateY(-1px);
         }
 
+        .reset-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .scoreboard {
             display: flex;
             justify-content: center;
@@ -319,6 +358,60 @@
 
         .score.o-score span {
             color: var(--accent-o);
+        }
+
+        .share-link {
+            margin-top: 20px;
+            padding: 15px;
+            background: var(--cell-bg);
+            border-radius: 12px;
+            border: 1px solid var(--cell-border);
+        }
+
+        .share-link h3 {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .share-link input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--cell-border);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .share-link button {
+            padding: 8px 20px;
+            background: var(--btn-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .share-link button:hover {
+            background: var(--btn-hover);
+        }
+
+        .waiting-message {
+            color: var(--accent-o);
+            font-size: 1.1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         @media (max-width: 480px) {
@@ -374,54 +467,64 @@
                 </svg>
             </button>
         </div>
-        <div class="status" id="status">Player X's turn</div>
-        <div class="board" id="board">
-            <button class="cell" data-index="0" aria-label="Cell 1"></button>
-            <button class="cell" data-index="1" aria-label="Cell 2"></button>
-            <button class="cell" data-index="2" aria-label="Cell 3"></button>
-            <button class="cell" data-index="3" aria-label="Cell 4"></button>
-            <button class="cell" data-index="4" aria-label="Cell 5"></button>
-            <button class="cell" data-index="5" aria-label="Cell 6"></button>
-            <button class="cell" data-index="6" aria-label="Cell 7"></button>
-            <button class="cell" data-index="7" aria-label="Cell 8"></button>
-            <button class="cell" data-index="8" aria-label="Cell 9"></button>
+
+        <div class="player-info">
+            <div class="player-badge" id="playerBadge">Loading...</div>
+            <div class="player-badge" id="roomBadge">Room: -</div>
         </div>
-        <button class="reset-btn" id="resetBtn">New Game</button>
+
+        <div class="status" id="status">Connecting...</div>
+
+        <div class="board" id="board">
+            <button class="cell" data-index="0" aria-label="Cell 1" disabled></button>
+            <button class="cell" data-index="1" aria-label="Cell 2" disabled></button>
+            <button class="cell" data-index="2" aria-label="Cell 3" disabled></button>
+            <button class="cell" data-index="3" aria-label="Cell 4" disabled></button>
+            <button class="cell" data-index="4" aria-label="Cell 5" disabled></button>
+            <button class="cell" data-index="5" aria-label="Cell 6" disabled></button>
+            <button class="cell" data-index="6" aria-label="Cell 7" disabled></button>
+            <button class="cell" data-index="7" aria-label="Cell 8" disabled></button>
+            <button class="cell" data-index="8" aria-label="Cell 9" disabled></button>
+        </div>
+
+        <button class="reset-btn" id="resetBtn" disabled>New Game</button>
+
         <div class="scoreboard">
             <div class="score x-score">X<span id="xScore">0</span></div>
             <div class="score o-score">O<span id="oScore">0</span></div>
         </div>
+
+        <div class="share-link" id="shareLink" style="display: none;">
+            <h3>Share this link</h3>
+            <input type="text" id="shareInput" readonly>
+            <button id="copyBtn">Copy Link</button>
+        </div>
     </div>
 
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 
-<script>
-const socket = io("http://localhost:3000");  // 👈 YEH TOP PE
+    <script>
+        const socket = io();
 
-const board = document.getElementById('board');
+        const board = document.getElementById('board');
         const cells = document.querySelectorAll('.cell');
         const status = document.getElementById('status');
         const resetBtn = document.getElementById('resetBtn');
         const themeToggle = document.getElementById('themeToggle');
+        const playerBadge = document.getElementById('playerBadge');
+        const roomBadge = document.getElementById('roomBadge');
         const xScoreEl = document.getElementById('xScore');
         const oScoreEl = document.getElementById('oScore');
+        const shareLink = document.getElementById('shareLink');
+        const shareInput = document.getElementById('shareInput');
+        const copyBtn = document.getElementById('copyBtn');
 
-        let currentPlayer = 'X';
+        let myPlayer = null;
+        let room = null;
         let gameBoard = ['', '', '', '', '', '', '', '', ''];
-        let gameActive = true;
+        let gameActive = false;
         let scores = { X: 0, O: 0 };
         let isDarkMode = true;
-
-        const winPatterns = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6]
-        ];
 
         const sunIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="5"></circle>
@@ -439,75 +542,84 @@ const board = document.getElementById('board');
             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
         </svg>`;
 
-        function handleCellClick(e) {
-            const cell = e.target;
-            const index = parseInt(cell.dataset.index);
-            sendMove(index);
-        
-
-            if (gameBoard[index] !== '' || !gameActive) return;
-
-            gameBoard[index] = currentPlayer;
-            cell.innerHTML = `<span>${currentPlayer}</span>`;
-            cell.classList.add(currentPlayer.toLowerCase());
-
-            if (checkWin()) {
-                status.textContent = `Player ${currentPlayer} wins!`;
-                gameActive = false;
-                scores[currentPlayer]++;
-                updateScores();
-                highlightWinner();
-                return;
-            }
-
-            if (checkDraw()) {
-                status.textContent = "It's a draw!";
-                gameActive = false;
-                return;
-            }
-
-            currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-            status.textContent = `Player ${currentPlayer}'s turn`;
+        // Get room from URL
+        function getRoomFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('room');
         }
 
-        function checkWin() {
-            return winPatterns.some(pattern => {
-                return pattern.every(index => gameBoard[index] === currentPlayer);
+        // Join room
+        function joinRoom() {
+            room = getRoomFromURL() || generateRoomCode();
+            socket.emit('join', { room });
+        }
+
+        // Generate random room code
+        function generateRoomCode() {
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            let code = '';
+            for (let i = 0; i < 6; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        // Handle cell click
+        function handleCellClick(e) {
+            const cell = e.currentTarget;
+            const index = parseInt(cell.dataset.index);
+
+            if (!gameActive || gameBoard[index] !== '') return;
+
+            sendMove(index);
+        }
+
+        // Send move to server
+        function sendMove(index) {
+            socket.emit('move', {
+                room: room,
+                index: index,
+                player: myPlayer
             });
         }
 
-        function checkDraw() {
-            return gameBoard.every(cell => cell !== '');
-        }
-
-        function highlightWinner() {
-            winPatterns.forEach(pattern => {
-                if (pattern.every(index => gameBoard[index] === currentPlayer)) {
-                    pattern.forEach(index => {
-                        cells[index].classList.add('winner');
-                    });
+        // Update board display
+        function updateBoard(boardData) {
+            gameBoard = boardData;
+            cells.forEach((cell, index) => {
+                const value = boardData[index];
+                if (value) {
+                    cell.innerHTML = `<span>${value}</span>`;
+                    cell.classList.add(value.toLowerCase());
+                    cell.classList.remove('winner');
+                } else {
+                    cell.innerHTML = '';
+                    cell.classList.remove('x', 'o', 'winner');
                 }
             });
         }
 
+        // Highlight winning cells
+        function highlightWinner(pattern) {
+            if (pattern) {
+                pattern.forEach(index => {
+                    cells[index].classList.add('winner');
+                });
+            }
+        }
+
+        // Update scores display
         function updateScores() {
             xScoreEl.textContent = scores.X;
             oScoreEl.textContent = scores.O;
         }
 
+        // Reset game
         function resetGame() {
-            gameBoard = ['', '', '', '', '', '', '', '', ''];
-            gameActive = true;
-            currentPlayer = 'X';
-            status.textContent = "Player X's turn";
-
-            cells.forEach(cell => {
-                cell.innerHTML = '';
-                cell.classList.remove('x', 'o', 'winner');
-                cell.disabled = false;
-            });
+            socket.emit('reset', { room: room });
         }
 
+        // Toggle theme
         function toggleTheme() {
             isDarkMode = !isDarkMode;
             document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
@@ -515,6 +627,7 @@ const board = document.getElementById('board');
             localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
         }
 
+        // Load theme
         function loadTheme() {
             const savedTheme = localStorage.getItem('theme');
             if (savedTheme) {
@@ -526,27 +639,138 @@ const board = document.getElementById('board');
             themeToggle.innerHTML = isDarkMode ? sunIcon : moonIcon;
         }
 
+        // Copy share link
+        function copyShareLink() {
+            shareInput.select();
+            document.execCommand('copy');
+            copyBtn.textContent = 'Copied!';
+            setTimeout(() => {
+                copyBtn.textContent = 'Copy Link';
+            }, 2000);
+        }
+
+        // Socket event handlers
+        socket.on('connect', () => {
+            console.log('Connected to server');
+            joinRoom();
+        });
+
+        socket.on('playerAssigned', (data) => {
+            myPlayer = data.symbol;
+            room = data.room;
+
+            playerBadge.textContent = `You are Player ${myPlayer}`;
+            playerBadge.className = `player-badge ${myPlayer.toLowerCase()}`;
+            roomBadge.textContent = `Room: ${room}`;
+
+            // Update URL if no room was specified
+            if (!getRoomFromURL()) {
+                const newUrl = `${window.location.pathname}?room=${room}`;
+                window.history.replaceState({}, '', newUrl);
+            }
+
+            // Show share link
+            shareLink.style.display = 'block';
+            shareInput.value = window.location.href;
+        });
+
+        socket.on('playerJoined', (data) => {
+            console.log('Player joined:', data);
+        });
+
+        socket.on('gameStart', (data) => {
+            gameActive = true;
+            if (data.board) updateBoard(data.board);
+            if (data.scores) {
+                scores = data.scores;
+                updateScores();
+            }
+            status.textContent = `Game started! Player ${data.currentPlayer}'s turn`;
+            cells.forEach(cell => cell.disabled = false);
+            resetBtn.disabled = false;
+        });
+
+        socket.on('waitingForOpponent', () => {
+            status.innerHTML = '<span class="waiting-message">Waiting for opponent...</span>';
+        });
+
+        socket.on('move', (data) => {
+            updateBoard(data.board);
+        });
+
+        socket.on('turnChange', (data) => {
+            if (data.currentPlayer === myPlayer) {
+                status.textContent = "Your turn!";
+            } else {
+                status.textContent = `Player ${data.currentPlayer}'s turn`;
+            }
+        });
+
+        socket.on('gameOver', (data) => {
+            gameActive = false;
+            updateBoard(data.board);
+
+            if (data.scores) {
+                scores = data.scores;
+                updateScores();
+            }
+
+            if (data.winner === 'draw') {
+                status.textContent = "It's a draw!";
+            } else if (data.winner === myPlayer) {
+                status.textContent = "You win! 🎉";
+            } else {
+                status.textContent = `Player ${data.winner} wins!`;
+            }
+
+            if (data.winningPattern) {
+                highlightWinner(data.winningPattern);
+            }
+
+            cells.forEach(cell => cell.disabled = true);
+        });
+
+        socket.on('gameReset', (data) => {
+            gameActive = true;
+            updateBoard(data.board);
+            if (data.scores) {
+                scores = data.scores;
+                updateScores();
+            }
+            status.textContent = `Game reset! Player ${data.currentPlayer}'s turn`;
+            cells.forEach(cell => cell.disabled = false);
+        });
+
+        socket.on('opponentLeft', () => {
+            status.innerHTML = '<span class="waiting-message">Opponent left. Waiting for new player...</span>';
+            gameActive = false;
+            cells.forEach(cell => cell.disabled = true);
+            resetBtn.disabled = true;
+        });
+
+        socket.on('error', (data) => {
+            console.error('Error:', data.message);
+            status.textContent = `Error: ${data.message}`;
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Disconnected from server');
+            status.textContent = 'Disconnected. Refresh to reconnect.';
+            gameActive = false;
+            cells.forEach(cell => cell.disabled = true);
+        });
+
+        // Event listeners
         cells.forEach(cell => {
             cell.addEventListener('click', handleCellClick);
         });
 
         resetBtn.addEventListener('click', resetGame);
         themeToggle.addEventListener('click', toggleTheme);
+        copyBtn.addEventListener('click', copyShareLink);
 
+        // Initialize
         loadTheme();
-        function sendMove(index) {
-  socket.emit("move", {
-    room: "room1",
-    index: index,
-    player: currentPlayer
-  });
-}
-
-socket.on("move", (data) => {
-  gameBoard[data.index] = data.player;
-  cells[data.index].textContent = data.player;
-});
-    
     </script>
 </body>
 </html>
