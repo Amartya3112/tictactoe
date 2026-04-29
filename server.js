@@ -214,9 +214,23 @@ io.on("connection", (socket) => {
 
     // If both players want to play again
     if (game.playAgainRequests.length === 2) {
+      // Swap symbols for the next game
+      game.players.forEach(p => {
+        p.symbol = p.symbol === "X" ? "O" : "X";
+        io.to(p.id).emit("playerAssigned", {
+          symbol: p.symbol,
+          room: room
+        });
+      });
+
+      // Swap scores so players keep their win counts
+      const tempScore = game.scores.X;
+      game.scores.X = game.scores.O;
+      game.scores.O = tempScore;
+
       // Reset game state
       game.board = ["", "", "", "", "", "", "", "", ""];
-      game.currentPlayer = "X";
+      game.currentPlayer = "X"; // X always goes first
       game.gameActive = true;
       game.winner = null;
       game.playAgainRequests = []; // Clear for next round
