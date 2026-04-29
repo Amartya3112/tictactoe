@@ -442,6 +442,7 @@ const board = document.getElementById('board');
         function handleCellClick(e) {
             const cell = e.target;
             const index = parseInt(cell.dataset.index);
+            sendMove(index);
         
 
             if (gameBoard[index] !== '' || !gameActive) return;
