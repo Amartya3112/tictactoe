@@ -534,6 +534,18 @@ const board = document.getElementById('board');
         themeToggle.addEventListener('click', toggleTheme);
 
         loadTheme();
+        function sendMove(index) {
+  socket.emit("move", {
+    room: "room1",
+    index: index,
+    player: currentPlayer
+  });
+}
+
+socket.on("move", (data) => {
+  gameBoard[data.index] = data.player;
+  cells[data.index].textContent = data.player;
+});
         
     </script>
 </body>

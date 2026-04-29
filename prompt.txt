@@ -1,0 +1,53 @@
+You are a senior full-stack engineer. I have built a Tic Tac Toe game using HTML, CSS, and JavaScript. I attempted to add multiplayer using Socket.IO, but it is not working.
+
+Your task is to:
+
+1. Debug my existing code.
+2. Remove any incorrect or unnecessary code.
+3. Convert the project into a fully working online multiplayer game.
+
+🎯 REQUIREMENTS:
+
+* Two players should be able to play from different browsers/devices.
+* Game should work using a sharable link (room-based system).
+* When one player clicks, the move should instantly reflect on the other player's screen.
+* Assign Player X to first user, Player O to second user.
+* Enforce turns (no cheating or double moves).
+* Maintain game state on the server (not just frontend).
+* Detect win/draw on server side.
+
+🧱 TECH STACK:
+
+* Frontend: Plain HTML, CSS, JavaScript (no frameworks)
+* Backend: Node.js + Express + Socket.IO
+
+📦 WHAT I WILL PROVIDE:
+
+* My current HTML file (tictactoe.html)
+* My server.js file
+
+🛠️ WHAT YOU MUST OUTPUT (STRICT):
+
+1. Clean folder structure
+2. Fully corrected server.js (complete code)
+3. Fully corrected tictactoe.html (complete code, not partial edits)
+4. Step-by-step setup instructions (numbered, beginner-friendly)
+5. Exact explanation of what was wrong in my previous approach
+6. How to generate and use room links (e.g., /?room=abc123)
+7. How to deploy (free options)
+
+⚠️ IMPORTANT RULES:
+
+* Do NOT give partial snippets — give full working files
+* Do NOT assume anything — explicitly show all logic
+* Keep code simple and readable
+* Do not use frameworks like React
+
+🧪 TEST CASE:
+
+* Open same link in 2 browsers → both join same room
+* Player 1 clicks → Player 2 sees instantly
+* Turns alternate correctly
+* Game ends properly with winner or draw
+
+Now wait for my code and then fix everything completely.
