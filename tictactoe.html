@@ -58,7 +58,8 @@
             padding: 20px;
             transition: background 0.4s ease;
             position: relative;
-            overflow: hidden;
+            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         body::before {
@@ -487,7 +488,7 @@
             <button class="cell" data-index="8" aria-label="Cell 9" disabled></button>
         </div>
 
-        <button class="reset-btn" id="resetBtn" disabled>New Game</button>
+        <button class="reset-btn" id="resetBtn" disabled>Game in Progress...</button>
 
         <div class="scoreboard">
             <div class="score x-score">X<span id="xScore">0</span></div>
@@ -687,7 +688,8 @@
             }
             status.textContent = `Game started! Player ${data.currentPlayer}'s turn`;
             cells.forEach(cell => cell.disabled = false);
-            resetBtn.disabled = false;
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'Game in Progress...';
         });
 
         socket.on('waitingForOpponent', () => {
@@ -728,6 +730,8 @@
             }
 
             cells.forEach(cell => cell.disabled = true);
+            resetBtn.disabled = false;
+            resetBtn.textContent = 'Play Again';
         });
 
         socket.on('gameReset', (data) => {
@@ -739,6 +743,8 @@
             }
             status.textContent = `Game reset! Player ${data.currentPlayer}'s turn`;
             cells.forEach(cell => cell.disabled = false);
+            resetBtn.disabled = true;
+            resetBtn.textContent = 'Game in Progress...';
         });
 
         socket.on('opponentLeft', () => {
@@ -746,6 +752,7 @@
             gameActive = false;
             cells.forEach(cell => cell.disabled = true);
             resetBtn.disabled = true;
+            resetBtn.textContent = 'Waiting...';
         });
 
         socket.on('error', (data) => {
