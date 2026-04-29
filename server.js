@@ -72,7 +72,8 @@ io.on("connection", (socket) => {
         players: [],
         gameActive: true,
         winner: null,
-        scores: { X: 0, O: 0 }
+        scores: { X: 0, O: 0 },
+        playAgainRequests: []
       };
     }
 
@@ -191,9 +192,9 @@ io.on("connection", (socket) => {
     });
   });
 
-  // Handle reset
-  socket.on("reset", (data) => {
-    const { room } = data;
+  // Handle play again request
+  socket.on("playAgain", (data) => {
+    const { room, player } = data;
 
     if (!games[room]) {
       return;
@@ -201,18 +202,37 @@ io.on("connection", (socket) => {
 
     const game = games[room];
 
-    // Reset game state
-    game.board = ["", "", "", "", "", "", "", "", ""];
-    game.currentPlayer = "X";
-    game.gameActive = true;
-    game.winner = null;
+    // Ensure array exists
+    if (!game.playAgainRequests) {
+      game.playAgainRequests = [];
+    }
 
-    // Broadcast reset to room
-    io.to(room).emit("gameReset", {
-      board: game.board,
-      currentPlayer: game.currentPlayer,
-      scores: game.scores
-    });
+    // Add player request if not already there
+    if (!game.playAgainRequests.includes(player)) {
+      game.playAgainRequests.push(player);
+    }
+
+    // If both players want to play again
+    if (game.playAgainRequests.length === 2) {
+      // Reset game state
+      game.board = ["", "", "", "", "", "", "", "", ""];
+      game.currentPlayer = "X";
+      game.gameActive = true;
+      game.winner = null;
+      game.playAgainRequests = []; // Clear for next round
+
+      // Broadcast reset to room
+      io.to(room).emit("gameReset", {
+        board: game.board,
+        currentPlayer: game.currentPlayer,
+        scores: game.scores
+      });
+    } else {
+      // Only one player wants to play again, notify everyone
+      io.to(room).emit("playAgainRequest", {
+        player: player
+      });
+    }
   });
 
   // Handle disconnect
