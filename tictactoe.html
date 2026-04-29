@@ -393,8 +393,12 @@
         </div>
     </div>
 
-    <script>
-        const board = document.getElementById('board');
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+const socket = io("http://localhost:3000");  // 👈 YEH TOP PE
+
+const board = document.getElementById('board');
         const cells = document.querySelectorAll('.cell');
         const status = document.getElementById('status');
         const resetBtn = document.getElementById('resetBtn');
@@ -438,6 +442,7 @@
         function handleCellClick(e) {
             const cell = e.target;
             const index = parseInt(cell.dataset.index);
+        
 
             if (gameBoard[index] !== '' || !gameActive) return;
 
@@ -528,6 +533,7 @@
         themeToggle.addEventListener('click', toggleTheme);
 
         loadTheme();
+        
     </script>
 </body>
 </html>
